@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Models Need a Physical Registry</title>
+<meta name="description" content="Physical Registry gives a video DiT dedicated, forecast-initialized registry slots that co-evolve with video tokens, making predicted dynamics an explicit, readable state.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
+<link rel="canonical" href="https://grainsack.github.io/physical-registry/">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Physical Registry">
+<meta property="og:title" content="World Models Need a Physical Registry">
+<meta property="og:description" content="Learning Internal Predictive States for Physically Plausible World Models. Dedicated, forecast-initialized registry slots that co-evolve with video tokens inside a video DiT.">
+<meta property="og:url" content="https://grainsack.github.io/physical-registry/">
+<meta property="og:image" content="https://grainsack.github.io/physical-registry/assets/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Physical Registry method overview: registry tokens co-evolve with video tokens inside a video DiT during training and inference.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="World Models Need a Physical Registry">
+<meta name="twitter:description" content="Learning Internal Predictive States for Physically Plausible World Models.">
+<meta name="twitter:image" content="https://grainsack.github.io/physical-registry/assets/img/og.png">
+
+<!-- Google Scholar -->
+<meta name="citation_title" content="World Models Need a Physical Registry: Learning Internal Predictive States for Physically Plausible World Models">
+<meta name="citation_author" content="Kim, Shinseong">
+<meta name="citation_author" content="Jeong, Jaeseok">
+<meta name="citation_author" content="Fu, Jianlong">
+<meta name="citation_author" content="Uh, Youngjung">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23042433'/%3E%3Crect x='6' y='8' width='5' height='16' rx='1.5' fill='%23F2A65A'/%3E%3Crect x='13.5' y='8' width='5' height='16' rx='1.5' fill='%23F2A65A' fill-opacity='.55'/%3E%3Crect x='21' y='8' width='5' height='16' rx='1.5' fill='%237FC3E8'/%3E%3C/svg%3E">
+
+<style>
+  :root {
+    /* palette taken from the paper's figures: registry = orange, video = blue, JEPA = purple, modules = ink */
+    --bg: #ffffff; --bg-soft: #f5f7f9; --bg-sunk: #eef2f5;
+    --ink: #0b1f2b; --ink-2: #34454f; --muted: #5a6a74; --dim: #7d8b93;
+    --line: #e2e7eb; --line-2: #cfd7dd;
+    --reg: #db8529; --reg-ink: #a85d12; --reg-soft: #fff1df; --reg-line: #f1c48f;
+    --vid: #3880b8; --vid-soft: #e4f3fb;
+    --jepa: #78549c; --jepa-soft: #efe7f8;
+    --base: #7a8790; --base-soft: #eef1f3;
+    --theater: #0b141b; --theater-2: #121d26; --theater-line: #24323d;
+    --radius: 18px;
+    --shadow: 0 1px 2px rgba(11,31,43,.05), 0 8px 28px -12px rgba(11,31,43,.16);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  a { color: var(--vid); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  img { max-width: 100%; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  .narrow { max-width: 860px; }
+  .skip { position: absolute; left: -999px; top: 8px; background: var(--ink); color: #fff; padding: 8px 14px; border-radius: 8px; z-index: 20; }
+  .skip:focus { left: 12px; }
+  :focus-visible { outline: 2.5px solid var(--vid); outline-offset: 3px; border-radius: 6px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+  /* ---------- nav ---------- */
+  nav.top { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.82); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px);
+            border-bottom: 1px solid transparent; transition: border-color .2s, box-shadow .2s; }
+  nav.top.scrolled { border-bottom-color: var(--line); box-shadow: 0 6px 20px -16px rgba(11,31,43,.35); }
+  nav.top .wrap { display: flex; align-items: center; gap: 20px; height: 58px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); text-decoration: none; white-space: nowrap; font-size: 16px; }
+  .brand-mark { display: inline-flex; gap: 2px; }
+  .brand-mark i { width: 5px; height: 16px; border-radius: 1.5px; display: block; }
+  .brand-mark i:nth-child(1) { background: var(--reg); }
+  .brand-mark i:nth-child(2) { background: repeating-linear-gradient(135deg, var(--reg) 0 1.5px, var(--reg-soft) 1.5px 3px); outline: 1px solid var(--reg); outline-offset: -1px; }
+  .brand-mark i:nth-child(3) { background: var(--vid-soft); outline: 1px solid var(--vid); outline-offset: -1px; }
+  nav.top ul { list-style: none; display: flex; gap: 4px; margin: 0 0 0 auto; padding: 0; font-size: 14.5px; overflow-x: auto; scrollbar-width: none; }
+  nav.top ul::-webkit-scrollbar { display: none; }
+  nav.top ul a { display: block; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 999px; white-space: nowrap; transition: color .15s, background .15s; }
+  nav.top ul a:hover { color: var(--ink); background: var(--bg-soft); }
+  nav.top ul a.active { color: var(--ink); background: var(--bg-sunk); font-weight: 600; }
+
+  /* ---------- hero ---------- */
+  header.hero { position: relative; padding: 64px 0 28px; text-align: center; overflow: hidden; }
+  header.hero::before { content: ""; position: absolute; inset: 0 0 auto; height: 520px; pointer-events: none; z-index: -1;
+    background: radial-gradient(60% 70% at 18% 0%, rgba(219,133,41,.10), transparent 70%), radial-gradient(55% 65% at 85% 5%, rgba(56,128,184,.11), transparent 70%), radial-gradient(40% 50% at 55% 0%, rgba(120,84,156,.07), transparent 70%); }
+  .venue { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .tokens { display: inline-flex; gap: 3px; align-items: center; }
+  .tokens i { display: block; width: 7px; height: 14px; border-radius: 2px; }
+  .tokens .r { background: var(--reg-soft); box-shadow: inset 0 0 0 1.2px var(--reg); }
+  .tokens .rh { background: repeating-linear-gradient(135deg, var(--reg) 0 1.3px, var(--reg-soft) 1.3px 3.2px); box-shadow: inset 0 0 0 1.2px var(--reg); }
+  .tokens .v { background: var(--vid-soft); box-shadow: inset 0 0 0 1.2px var(--vid); }
+  .tokens .sep { width: 1.5px; height: 16px; background: var(--ink); opacity: .55; margin: 0 2px; border-radius: 1px; }
+  h1 { font-size: clamp(34px, 5.6vw, 64px); line-height: 1.04; letter-spacing: -.032em; font-weight: 800; margin: 18px auto 12px; max-width: 980px; text-wrap: balance; }
+  h1 .accent { color: var(--reg); background: linear-gradient(100deg, #c96f14 10%, var(--reg) 45%, #e9a04f 90%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { font-size: clamp(18px, 2.1vw, 24px); line-height: 1.35; color: var(--ink-2); font-weight: 500; margin: 0 auto; max-width: 820px; letter-spacing: -.01em; text-wrap: balance; }
+  .authors { margin: 28px auto 0; font-size: clamp(16.5px, 1.8vw, 19px); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 26px; }
+  .authors span { white-space: nowrap; font-weight: 500; }
+  sup { font-size: .66em; line-height: 0; position: relative; top: -.1em; vertical-align: super; color: var(--muted); font-weight: 600; margin-left: 1px; }
+  .corr { color: var(--reg-ink); }
+  .affils { margin: 14px auto 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 14px; }
+  .wordmark { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 9px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font-size: 15px; color: var(--ink-2); }
+  .wordmark sup { top: 0; margin: 0; font-size: 12px; color: #fff; background: var(--ink); width: 19px; height: 19px; line-height: 19px; border-radius: 6px; display: inline-grid; place-items: center; vertical-align: middle; }
+  .wordmark b { font-weight: 650; letter-spacing: -.005em; color: var(--ink); }
+  .corr-note { margin: 12px 0 0; font-size: 13.5px; color: var(--muted); }
+
+  .links { margin: 26px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .btn { position: relative; display: inline-flex; align-items: center; gap: 9px; height: 44px; padding: 0 18px 0 15px; border-radius: 999px; background: var(--ink); color: #fff;
+         font: 600 15px/1 var(--sans); text-decoration: none; border: 1px solid var(--ink); cursor: pointer; transition: transform .15s ease, background .15s, box-shadow .2s; }
+  .btn svg { width: 19px; height: 19px; flex: none; }
+  .btn:hover { background: #18323f; transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(11,31,43,.6); }
+  .btn:active { transform: none; }
+  .btn.ghost { background: #fff; color: var(--ink); border-color: var(--line-2); }
+  .btn.ghost:hover { background: var(--bg-soft); }
+  .btn.icon { width: 44px; padding: 0; justify-content: center; }
+  .btn[aria-disabled="true"] { background: var(--bg-soft); color: var(--dim); border-color: var(--line); cursor: not-allowed; box-shadow: none; transform: none; }
+  .btn[aria-disabled="true"] svg { opacity: .7; }
+  .badge { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; background: var(--reg); color: #fff; line-height: 1; }
+  .btn.ghost .badge { background: var(--reg-soft); color: var(--reg-ink); box-shadow: inset 0 0 0 1px var(--reg-line); }
+  .btn.is-pending .badge { background: rgba(255,255,255,.16); color: #ffe2bf; box-shadow: inset 0 0 0 1px rgba(255,226,191,.35); }
+  [data-tip]::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translate(-50%, 4px); background: var(--ink); color: #fff;
+       font: 600 12.5px/1 var(--sans); padding: 7px 10px; border-radius: 8px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; }
+  [data-tip]:hover::after, [data-tip]:focus-visible::after, [data-tip].tip-on::after { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- teaser ---------- */
+  .teaser { margin: 40px auto 0; max-width: 1080px; text-align: left; background: var(--theater); border-radius: 24px; padding: 16px 16px 14px; box-shadow: 0 30px 60px -30px rgba(11,31,43,.55); position: relative; }
+  .teaser-head { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; padding: 2px 4px 14px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font: 600 13px/1 var(--sans); color: #a9b7c1; background: transparent; border: 1px solid var(--theater-line); border-radius: 999px; padding: 8px 12px; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+  .chip:hover { color: #fff; border-color: #3b4c59; }
+  .chip[aria-selected="true"] { color: var(--theater); background: #fff; border-color: #fff; }
+  .teaser-ctl { display: flex; align-items: center; gap: 8px; color: #8a99a4; font-size: 13px; }
+  .teaser-ctl button { font: 600 13px/1 var(--sans); color: #dfe7ec; background: var(--theater-2); border: 1px solid var(--theater-line); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+  .teaser-ctl button:hover { border-color: #3b4c59; }
+  .teaser-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tv { position: relative; margin: 0; }
+  .tv video { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 14px; background: #000; }
+  .tv .tag { top: 10px; left: 10px; }
+  .tv figcaption { color: #e9eff3; font-size: 14.5px; font-weight: 550; line-height: 1.4; padding: 10px 4px 0 14px; position: relative; min-height: 3.3em; }
+  .tv figcaption::before { content: ""; position: absolute; left: 2px; top: 12px; bottom: 2px; width: 3px; border-radius: 2px; background: var(--c); }
+  .tv.base { --c: #9aa7b0; } .tv.ours { --c: var(--reg); }
+  .teaser-foot { display: flex; align-items: center; gap: 12px; padding: 10px 4px 2px; color: #8a99a4; font-size: 13px; }
+  .progress { flex: 1; height: 3px; background: var(--theater-line); border-radius: 3px; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--reg), #f0b06c); border-radius: 3px; }
+  .teaser-scene { color: #c8d3da; font-size: 13.5px; }
+  .teaser-scene b { color: #fff; font-weight: 650; }
+
+  .tldr { max-width: 900px; margin: 34px auto 0; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; text-align: left; }
+  .tldr .lab { font: 700 12px/1 var(--mono); letter-spacing: .06em; color: var(--reg-ink); background: var(--reg-soft); border: 1px solid var(--reg-line); padding: 6px 8px; border-radius: 7px; margin-top: 4px; }
+  .tldr p { margin: 0; font-size: clamp(17px, 1.9vw, 20px); line-height: 1.5; color: var(--ink); letter-spacing: -.008em; }
+
+  /* ---------- sections ---------- */
+  main section { padding: 76px 0 8px; scroll-margin-top: 64px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font: 700 12.5px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--reg-ink); }
+  .eyebrow::before { content: ""; width: 18px; height: 2px; background: currentColor; border-radius: 2px; }
+  h2 { font-size: clamp(27px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -.025em; margin: 12px 0 14px; font-weight: 780; text-wrap: balance; }
+  h3 { letter-spacing: -.012em; }
+  .lead { color: var(--ink-2); font-size: 18px; margin: 0 0 26px; max-width: 860px; }
+  .sub { color: var(--muted); margin: 0 0 24px; max-width: 860px; }
+
+  .abstract { font-size: 17.5px; line-height: 1.75; color: var(--ink-2); text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin: 0; }
+  .abstract b { color: var(--ink); font-weight: 650; }
+  .abstract em { color: var(--ink); }
+
+  .question { margin: 0 0 28px; padding: 22px 26px; border-radius: var(--radius); background: var(--bg-soft); border: 1px solid var(--line); position: relative; }
+  .question p { margin: 0; font-size: clamp(19px, 2.3vw, 25px); line-height: 1.35; font-weight: 650; letter-spacing: -.015em; color: var(--ink); }
+  .question span { display: block; font: 700 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  /* key numbers */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 8px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 20px 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .stat::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--c, var(--reg)); }
+  .stat .k { font: 700 11.5px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .stat .n { font-size: clamp(30px, 3.4vw, 40px); font-weight: 800; letter-spacing: -.035em; line-height: 1.05; margin: 12px 0 10px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .stat .n small { font-size: .5em; font-weight: 650; color: var(--muted); letter-spacing: -.01em; }
+  .stat p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+  .stat:nth-child(2) { --c: var(--vid); } .stat:nth-child(3) { --c: var(--jepa); } .stat:nth-child(4) { --c: var(--ink); }
+
+  /* figures */
+  .figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(10px, 2vw, 24px); box-shadow: var(--shadow); }
+  .figure img { display: block; width: 100%; height: auto; }
+  .figure figcaption { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 14.5px; color: var(--muted); line-height: 1.55; }
+  .figure figcaption b { color: var(--ink); }
+  .zoom-hint { display: none; font-size: 12.5px; color: var(--dim); margin-top: 8px; }
+  @media (max-width: 760px) {
+    .figure.scroll .img-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .figure.scroll img { width: 760px; max-width: none; }
+    .figure.scroll .zoom-hint { display: block; }
+  }
+
+  .props { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+  .prop { padding: 18px 18px 16px; border-radius: 16px; background: var(--bg-soft); border: 1px solid var(--line); }
+  .prop .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 12px; background: #fff; border: 1px solid var(--line); }
+  .prop .ic svg { width: 20px; height: 20px; }
+  .prop h3 { margin: 0 0 6px; font-size: 16.5px; }
+  .prop p { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
+
+
+  .principle { margin: 72px 0 0; padding: 34px clamp(20px, 4vw, 44px); border-radius: 24px; background: var(--ink); color: #fff; position: relative; overflow: hidden; }
+  .principle::after { content: ""; position: absolute; right: -40px; top: -40px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(closest-side, rgba(219,133,41,.35), transparent); pointer-events: none; }
+  .principle span { font: 700 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #f2b36f; }
+  .principle p { margin: 12px 0 0; font-size: clamp(20px, 2.6vw, 28px); line-height: 1.3; font-weight: 650; letter-spacing: -.018em; max-width: 900px; position: relative; }
+
+  /* ---------- results gallery (demo player, restyled) ---------- */
+  .legend { display: flex; gap: 10px 20px; flex-wrap: wrap; margin: -6px 0 24px; font-size: 14px; color: var(--muted); }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; }
+  .grid { display: grid; gap: 22px; }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid.two .card { display: flex; flex-direction: column; }
+  .grid.two .card-head { flex: 1 0 auto; align-items: flex-start; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); transition: border-color .2s, box-shadow .2s; }
+  .card:hover { border-color: var(--line-2); }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 4px 6px 14px; }
+  .kicker { color: var(--reg-ink); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+  .card h3 { margin: 3px 0 0; font-size: 21px; line-height: 1.3; }
+  .grid.two .card h3 { font-size: 17.5px; }
+  .card .expect { color: var(--ink-2); font-size: 15.5px; }
+  .card .expect b { color: var(--ink); font-weight: 650; }
+  .expect .hl-a { color: #56636c; font-weight: 650; }
+  .expect .hl-b { color: var(--reg-ink); font-weight: 650; }
+
+  .pair { display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); gap: 14px; }
+  .panel { position: relative; margin: 0; }
+  .panel video { width: 100%; aspect-ratio: 16/9; display: block; border-radius: 14px; background: #0b141b; object-fit: cover; box-shadow: 0 0 0 2px var(--pc, transparent); }
+  .panel.base { --pc: #b7c1c8; } .panel.ours { --pc: var(--reg); } .panel.src { --pc: var(--jepa); }
+  .tag { position: absolute; left: 12px; top: 12px; font-size: 12.5px; font-weight: 650; padding: 4px 10px; border-radius: 999px; pointer-events: none;
+         backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); line-height: 1.4; }
+  .base .tag { color: #eef2f4; background: rgba(30,40,47,.72); border: 1px solid rgba(183,193,200,.7); }
+  .ours .tag { color: #fff; background: rgba(150,80,10,.78); border: 1px solid rgba(255,190,120,.85); }
+  .src .tag  { color: #fff; background: rgba(70,40,105,.75); border: 1px solid rgba(200,170,235,.8); }
+  .scn { margin: 0 6px 16px; padding: 10px 14px; border-left: 3px solid var(--line-2); background: var(--bg-soft); border-radius: 0 10px 10px 0; }
+  .scn .lab { color: var(--dim); font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; font-family: var(--mono); }
+  .scn p { margin: 3px 0 0; color: var(--ink-2); font-size: 14.5px; }
+  .panel figcaption { color: var(--ink); font-size: clamp(14.5px, 1.2vw, 16px); font-weight: 600; line-height: 1.4; padding: 10px 4px 2px 16px; position: relative; text-wrap: pretty; }
+  .panel figcaption::before { content: ""; position: absolute; left: 2px; top: 12px; bottom: 3px; width: 4px; border-radius: 2px; background: var(--pc); }
+  .panel.base figcaption::before { background: var(--base); }
+  .card.xfer-card .card-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  /* motion transfer: source left, A top-right, B bottom-right, arrows drawn by script */
+  .xfer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) clamp(56px, 6vw, 88px) minmax(0, 1.08fr); grid-template-rows: auto auto; gap: 18px 0; align-items: start; }
+  .xfer .panel.src { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
+  .xfer .panel.base { grid-column: 3; grid-row: 1; }
+  .xfer .panel.ours { grid-column: 3; grid-row: 2; }
+  .xfer svg.arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .arr-no { stroke: #9aa6ae; stroke-width: 3; stroke-dasharray: 8 7; fill: none; }
+  .arr-yes { stroke: var(--reg); stroke-width: 4; fill: none; }
+  .head-yes { fill: var(--reg); }
+  .xmark circle { fill: #fff; stroke: #d64545; stroke-width: 2.5; }
+  .xmark path { stroke: #d64545; stroke-width: 3; stroke-linecap: round; }
+  .arrow-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; color: var(--muted); padding: 12px 4px 0; }
+  .arrow-key b { color: var(--ink); font-weight: 650; }
+  @media (max-width: 760px) {
+    .xfer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 64px auto; gap: 0 12px; }
+    .xfer .panel.src { grid-column: 1 / span 2; grid-row: 1; width: 78%; justify-self: center; }
+    .xfer .panel.base { grid-column: 1; grid-row: 3; }
+    .xfer .panel.ours { grid-column: 2; grid-row: 3; }
+  }
+
+  .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 0 4px; }
+  .controls button { font: 600 13.5px/1 var(--sans); color: var(--ink); background: #fff; border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 14px; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
+  .controls button:hover { background: var(--bg-soft); }
+  .controls button:active { transform: scale(.97); }
+  .controls button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .controls .play { min-width: 92px; }
+  input[type=range] { flex: 1; accent-color: var(--reg); min-width: 80px; }
+  .speeds { display: inline-flex; gap: 4px; }
+  .speeds button { padding: 7px 10px; font-size: 12.5px; }
+  .time { font-variant-numeric: tabular-nums; color: var(--dim); font-size: 13px; min-width: 84px; text-align: right; }
+  .prompt { font-family: var(--mono); font-size: 14px; color: var(--ink-2); background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 0 0 22px; max-width: 860px; }
+  .prompt .nomotion { font-style: normal; font-weight: 700; color: var(--reg-ink); background: var(--reg-soft); border: 1px solid var(--reg-line); padding: 1px 8px; border-radius: 999px; letter-spacing: .06em; }
+  .prompt span { color: var(--dim); display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+
+  .subhead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 64px 0 6px; padding-top: 28px; border-top: 1px solid var(--line); }
+  .subhead:first-of-type { margin-top: 8px; }
+  .subhead h3 { margin: 0; font-size: clamp(21px, 2.4vw, 27px); }
+  .subhead .k { font: 700 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .results-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; }
+  .results-tabs a { font-size: 14px; font-weight: 600; color: var(--ink-2); text-decoration: none; border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 14px; background: #fff; }
+  .results-tabs a:hover { background: var(--bg-soft); }
+
+  /* bibtex */
+  .bib { position: relative; background: var(--theater); color: #dbe5eb; border-radius: 16px; padding: 22px 22px; overflow-x: auto; }
+  .bib pre { margin: 0; font: 14px/1.65 var(--mono); white-space: pre; }
+  .bib .copy { position: absolute; right: 12px; top: 12px; font: 600 13px/1 var(--sans); color: #dfe7ec; background: var(--theater-2); border: 1px solid var(--theater-line); border-radius: 999px; padding: 8px 12px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
+  .bib .copy:hover { border-color: #3b4c59; }
+  .bib .copy svg { width: 15px; height: 15px; }
+  .bib .copy.ok { color: #ffd9ae; border-color: var(--reg); }
+
+  footer { margin-top: 88px; border-top: 1px solid var(--line); background: var(--bg-soft); color: var(--muted); font-size: 14px; padding: 32px 0 48px; }
+  footer p { margin: 6px 0; max-width: 900px; }
+  footer a { color: var(--ink-2); }
+
+  /* reveals */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .stats .reveal:nth-child(2), .props .reveal:nth-child(2) { transition-delay: .07s; }
+  .stats .reveal:nth-child(3), .props .reveal:nth-child(3) { transition-delay: .14s; }
+  .stats .reveal:nth-child(4), .props .reveal:nth-child(4) { transition-delay: .21s; }
+  .hero-in > * { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+  .hero-in > :nth-child(2) { animation-delay: .05s; } .hero-in > :nth-child(3) { animation-delay: .1s; }
+  .hero-in > :nth-child(4) { animation-delay: .15s; } .hero-in > :nth-child(5) { animation-delay: .2s; }
+  .hero-in > :nth-child(6) { animation-delay: .25s; } .hero-in > :nth-child(7) { animation-delay: .3s; } .hero-in > :nth-child(8) { animation-delay: .38s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 980px) {
+    .stats, .props { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) { .grid.two { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 16px; }
+    nav.top .wrap { gap: 10px; }
+    .brand-text { display: none; }
+    header.hero { padding-top: 40px; }
+    .pair { grid-template-columns: 1fr; }
+    .controls { flex-wrap: wrap; }
+    .teaser { padding: 10px 10px 10px; border-radius: 18px; margin-top: 30px; }
+    .teaser-pair { gap: 8px; }
+    .tv figcaption { font-size: 13px; padding-left: 12px; }
+    .tv .tag { font-size: 11px; padding: 3px 8px; top: 7px; left: 7px; }
+    .abstract { text-align: left; }
+    .card { padding: 12px; border-radius: 18px; }
+    .question { padding: 18px 18px; }
+    .tag { font-size: 11px; padding: 2px 8px; left: 8px; top: 8px; }
+    .bib { padding-top: 56px; }
+    nav.top ul { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 24px; }
+  }
+  @media (max-width: 520px) {
+    .stats, .props { grid-template-columns: 1fr; }
+    .teaser-pair { grid-template-columns: 1fr; }
+    .tv figcaption { min-height: 0; }
+    .tldr { grid-template-columns: 1fr; gap: 10px; }
+    .tldr .lab { justify-self: start; }
+    .btn { height: 42px; font-size: 14.5px; padding: 0 14px 0 12px; }
+    .btn.icon { width: 42px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .hero-in > * { animation: none; }
+    .btn, .chip { transition: none; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top" aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Physical Registry, back to top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-text">Physical Registry</span></a>
+    <ul>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#prs">PRS</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#bibtex">BibTeX</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-in">
+    <div class="venue" aria-hidden="true"><span class="tokens" aria-hidden="true"><i class="r"></i><i class="rh"></i><i class="rh"></i><i class="sep"></i><i class="v"></i><i class="v"></i><i class="v"></i></span></div>
+    <h1>World Models Need a <span class="accent">Physical Registry</span></h1>
+    <p class="subtitle">Learning Internal Predictive States for Physically Plausible World Models</p>
+
+    <div>
+      <p class="authors">
+        <span>Shinseong Kim<sup>1,2</sup></span>
+        <span>Jaeseok Jeong<sup>1</sup></span>
+        <span>Jianlong Fu<sup>2</sup></span>
+        <span>Youngjung Uh<sup>1</sup><sup class="corr" aria-label="corresponding author">&#9993;</sup></span>
+      </p>
+      <div class="affils" role="list" aria-label="Affiliations">
+        <span class="wordmark" role="listitem"><sup>1</sup><b>Yonsei University</b></span>
+        <span class="wordmark" role="listitem"><sup>2</sup><b>Microsoft Research Asia</b></span>
+      </div>
+      <p class="corr-note"><span class="corr" aria-hidden="true">&#9993;</span> Corresponding author</p>
+    </div>
+
+    <div class="links">
+      <a class="btn is-pending" id="paper-link" href="#" data-tip="Coming soon" aria-label="Paper on arXiv (coming soon)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M6 2.8h8.2L19 7.6v13.6H6z"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M14 2.8v5h5"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M8.8 12h7.4M8.8 15.2h7.4M8.8 18.2h4.6"/></svg>
+        <span>Paper</span><span class="badge">arXiv soon</span>
+      </a>
+      <a class="btn" href="https://github.com/GrainSack/physical-registry" target="_blank" rel="noopener" aria-label="Code on GitHub (release soon)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        <span>Code</span><span class="badge">Release soon</span>
+      </a>
+      <span class="btn icon" role="link" aria-disabled="true" tabindex="0" data-tip="Coming soon" aria-label="Hugging Face (coming soon)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10.5" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="8.8" r="1.25" fill="currentColor"/><circle cx="15" cy="8.8" r="1.25" fill="currentColor"/><path d="M8.4 12.3c.9 1.9 2.1 2.8 3.6 2.8s2.7-.9 3.6-2.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.2 15.6c.9-.7 2.1-.6 2.9.3l2 2.2c.6.7.5 1.7-.2 2.3l-.3.2c-.8.6-1.9.5-2.6-.2l-1.9-2.2c-.7-.8-.7-2 .1-2.6Zm17.6 0c-.9-.7-2.1-.6-2.9.3l-2 2.2c-.6.7-.5 1.7.2 2.3l.3.2c.8.6 1.9.5 2.6-.2l1.9-2.2c.7-.8.7-2-.1-2.6Z" fill="currentColor"/></svg>
+      </span>
+      <a class="btn ghost" href="#bibtex" aria-label="Jump to BibTeX citation">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M5 4.5h10.5L19 8v11.5H5zM8.5 11h7M8.5 14.5h7M8.5 7.5h4"/></svg>
+        <span>BibTeX</span>
+      </a>
+    </div>
+
+    <div class="teaser" id="teaser" aria-roledescription="carousel" aria-label="Backbone versus Physical Registry on Physics-IQ">
+      <div class="teaser-head">
+        <div class="chips" role="tablist" aria-label="Physics-IQ category"></div>
+        <div class="teaser-ctl"><button type="button" class="tplay" aria-label="Pause teaser">&#10074;&#10074; Pause</button></div>
+      </div>
+      <div class="teaser-pair">
+        <figure class="tv base">
+          <video muted playsinline preload="metadata" aria-label="Cosmos 3 Nano backbone generation"></video>
+          <span class="tag">Cosmos 3 Nano (backbone)</span>
+          <figcaption></figcaption>
+        </figure>
+        <figure class="tv ours">
+          <video muted playsinline preload="metadata" aria-label="Cosmos 3 Nano with Physical Registry generation"></video>
+          <span class="tag">+ Physical Registry</span>
+          <figcaption></figcaption>
+        </figure>
+      </div>
+      <div class="teaser-foot">
+        <span class="teaser-scene" aria-live="polite"></span>
+        <div class="progress" aria-hidden="true"><i></i></div>
+      </div>
+    </div>
+
+    <div class="tldr">
+      <span class="lab">TL;DR</span>
+      <p>Physical Registry gives a video DiT dedicated, forecast-initialized registry slots that co-evolve with video tokens, making predicted dynamics an explicit, readable state.</p>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<section id="abstract">
+  <div class="wrap narrow">
+    <div class="reveal">
+      <div class="eyebrow">Abstract</div>
+      <h2>Where should predictions of scene evolution live?</h2>
+      <p class="abstract">Video world models must generate physically plausible futures, not just realistic frames. Existing approaches typically use semantic, physical, or predictive information to guide the visual generation stream, leaving a fundamental question: <b>where inside the generator should predictions of scene evolution live?</b> Standard video tokens jointly encode appearance and dynamics, but provide no distinct state for learning and reading predictive dynamics. We answer this question with the <b>Physical Registry</b>: temporally grounded registry slots inside a video DiT that are initialized from an observation-conditioned forecast, co-evolve with video tokens, and receive future-representation supervision, making predictive dynamics an explicit, readable state of the generator. In a controlled comparison of predictive-state interfaces on Physics-IQ Verified, Physical Registry improves vanilla fine-tuning by 9.9/8.7 points on I2V/V2V, the largest gain among the interfaces we compare. Across all Cosmos and WAN backbones, Physical Registry improves Physics-IQ Verified scores. With only 0.45% additional parameters, it enables Cosmos&nbsp;3 Nano 16B to surpass the published I2V score of Cosmos&nbsp;3 Super 64B (43.56 vs.&nbsp;42.7). On WorldModelBench, it also improves physical adherence and the total score for all four evaluated backbones. Because the registry becomes candidate-specific while remaining readable, the <em>Physical Registry Selector (PRS)</em> ranks emerging futures by how far their intermediate registry readouts depart from the shared forecast before full denoising is complete. Across four backbones, this selection improves I2V scores by 5.6&ndash;15.9% without completed-video external scoring. Together, these results support a broader principle: <b>dynamics prediction should live as an explicit model state that co-evolves with the video representation.</b></p>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:48px">
+    <h3 class="sr-only">Key numbers</h3>
+    <div class="stats">
+      <div class="stat reveal">
+        <div class="k">Controlled comparison</div>
+        <div class="n">+9.9 <small>/</small> +8.7</div>
+        <p>Physics-IQ Verified points over vanilla fine-tuning on I2V / V2V, the largest gain among the predictive-state interfaces we compare.</p>
+      </div>
+      <div class="stat reveal">
+        <div class="k">Nano 16B vs. Super 64B</div>
+        <div class="n">43.56 <small>vs.</small> 42.7</div>
+        <p>With Physical Registry, Cosmos&nbsp;3 Nano 16B surpasses the published I2V score of Cosmos&nbsp;3 Super 64B.</p>
+      </div>
+      <div class="stat reveal">
+        <div class="k">Parameter overhead</div>
+        <div class="n">0.45%</div>
+        <p>Only 0.45% additional parameters.</p>
+      </div>
+      <div class="stat reveal">
+        <div class="k">Physical Registry Selector</div>
+        <div class="n">+5.6&ndash;15.9%</div>
+        <p>PRS improves I2V scores across four backbones without completed-video external scoring.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Method</div>
+      <h2>A dedicated, readable state for predicted dynamics</h2>
+      <p class="lead">Standard video tokens jointly encode appearance and dynamics, but provide no distinct state for learning and reading predictive dynamics. Physical Registry represents the forecast in a fixed set of dedicated registry slots that carry predictive features alongside the video latent rather than within it.</p>
+    </div>
+    <figure class="figure scroll reveal">
+      <div class="img-scroll"><img src="assets/img/overview.png" width="2397" height="1242" loading="lazy" decoding="async"
+        alt="Method overview. (a) Training: a frozen JEPA encoder and predictor produce a forecast that initializes Physical Registry tokens; the registry tokens are concatenated with video tokens, pass through shared DiT blocks, and a registry reader is supervised with an alignment loss while the video stream keeps the flow-matching loss. (b) Inference: from observation frames, the same registry is forecast-initialized and the registry reader produces readouts used for the PRS score."></div>
+      <span class="zoom-hint">Swipe to see the full figure.</span>
+      <figcaption><b>Physical Registry during training and inference.</b> The Physical Registry gives predicted future dynamics a dedicated, readable state inside the video DiT. (a) Training: forecast-initialized registry tokens co-evolve with video tokens and receive predictive supervision. (b) Inference: the same registry provides readouts for PRS.</figcaption>
+    </figure>
+
+    <div class="props">
+      <div class="prop reveal">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 20 20"><rect x="2.5" y="4" width="4" height="12" rx="1.2" fill="#fff1df" stroke="#db8529" stroke-width="1.4"/><rect x="8" y="4" width="4" height="12" rx="1.2" fill="#e4f3fb" stroke="#3880b8" stroke-width="1.4"/><rect x="13.5" y="4" width="4" height="12" rx="1.2" fill="#e4f3fb" stroke="#3880b8" stroke-width="1.4"/></svg></div>
+        <h3>Dedicated</h3>
+        <p>Temporally grounded registry slots inside a video DiT, carrying predictive features alongside the video latent rather than within it.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 20 20"><rect x="2" y="6" width="5" height="8" rx="1.2" fill="#efe7f8" stroke="#78549c" stroke-width="1.4"/><path d="M8.5 10h3.2" stroke="#78549c" stroke-width="1.6" stroke-linecap="round"/><path d="M11 7.8l2.2 2.2-2.2 2.2" fill="none" stroke="#78549c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="6" width="4" height="8" rx="1.2" fill="#fff1df" stroke="#db8529" stroke-width="1.4"/></svg></div>
+        <h3>Forecast-initialized</h3>
+        <p>Registry slots are initialized from an observation-conditioned forecast of a frozen JEPA encoder and predictor.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M3 7c3-3 5 3 7 0s4-3 7 0" fill="none" stroke="#db8529" stroke-width="1.7" stroke-linecap="round"/><path d="M3 13c3-3 5 3 7 0s4-3 7 0" fill="none" stroke="#3880b8" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>Co-evolving</h3>
+        <p>Registry slots co-evolve with video tokens through the shared DiT blocks.</p>
+      </div>
+      <div class="prop reveal">
+        <div class="ic" aria-hidden="true"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="#0b1f2b" stroke-width="1.6"/><path d="M12.3 12.3l4.2 4.2" stroke="#0b1f2b" stroke-width="1.8" stroke-linecap="round"/><rect x="6.5" y="6" width="1.6" height="5" rx=".6" fill="#db8529"/><rect x="9" y="6" width="1.6" height="5" rx=".6" fill="#db8529" fill-opacity=".5"/></svg></div>
+        <h3>Future-supervised &amp; readable</h3>
+        <p>Registry slots receive future-representation supervision, making predictive dynamics an explicit, readable state of the generator.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="prs">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Inference</div>
+      <h2>Physical Registry Selector (PRS)</h2>
+      <p class="lead">Because the registry becomes candidate-specific while remaining readable, the Physical Registry Selector (PRS) ranks emerging futures by how far their intermediate registry readouts depart from the shared forecast before full denoising is complete. Across four backbones, this selection improves I2V scores by 5.6&ndash;15.9% without completed-video external scoring.</p>
+    </div>
+    <figure class="figure scroll reveal">
+      <div class="img-scroll"><img src="assets/img/prs.png" width="2293" height="843" loading="lazy" decoding="async"
+        alt="PRS procedure in three stages. 1: N noise samples are denoised for K steps by the video DiT, with registry tokens initialized from the shared JEPA forecast. 2: registry readouts are mapped by a readout head and compared with the shared forecast by cosine similarity, giving a forecast-departure score per candidate. 3: the candidate with the largest departure score is picked and denoised for the remaining D minus K steps; the others stop."></div>
+      <span class="zoom-hint">Swipe to see the full figure.</span>
+      <figcaption><b>Three-stage prefix selection with PRS.</b> Candidates share the same forecast initialization, are ranked from registry readouts over a <i>K</i>-step prefix, and only the selected trajectory continues for the remaining <i>D</i>&minus;<i>K</i> steps.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow">Results</div>
+      <h2>Generated videos</h2>
+      <nav class="results-tabs" aria-label="Result sets">
+        <a href="#physicsiq">Physics-IQ</a>
+        <a href="#wmb">WorldModelBench</a>
+        <a href="#transfer">Motion transfer</a>
+      </nav>
+    </div>
+
+    <div id="physicsiq" class="subhead" style="scroll-margin-top:70px">
+      <span class="k">Physics-IQ · one scenario per category</span>
+      <h3 style="flex-basis:100%">Backbone vs. Physical Registry</h3>
+    </div>
+    <p class="sub">Each pair starts from the same conditioning input: the pretrained Cosmos&nbsp;3 Nano 16B backbone on the left, the same backbone with the Physical Registry on the right. These are the full 5&nbsp;s generations behind Figure 3 in the paper.</p>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--base)"></span>Cosmos 3 Nano (backbone)</span>
+      <span><span class="dot" style="background:var(--reg)"></span>+ Physical Registry</span>
+    </div>
+    <div class="grid" id="grid"></div>
+
+    <div id="wmb" class="subhead" style="scroll-margin-top:70px">
+      <span class="k">WorldModelBench · beyond Physics-IQ</span>
+      <h3 style="flex-basis:100%">Robotics, driving and natural scenes</h3>
+    </div>
+    <p class="sub">Generations from Cosmos&nbsp;3 Nano 16B with the Physical Registry for WorldModelBench prompts, the examples shown in the paper's appendix. Each clip starts from the benchmark's first frame and text instruction.</p>
+    <div class="grid two" id="gridwmb"></div>
+
+    <div id="transfer" class="subhead" style="scroll-margin-top:70px">
+      <span class="k">Registry-mediated motion transfer</span>
+      <h3 style="flex-basis:100%">Motion transfer</h3>
+    </div>
+    <p class="sub">We replace the forecast in the Physical Registry with JEPA encoder features of the motion source, keeping the initial frame, prompt, and noise fixed.</p>
+    <div class="prompt"><span>Shared general prompt (<em class="nomotion">no motion description</em>)</span>A small smooth white sphere and a plain tabletop in a fixed-camera side view. Neutral background, consistent lighting, one continuous shot.</div>
+    <div class="grid" id="grid2"></div>
+
+    <div class="principle reveal">
+      <span>Takeaway</span>
+      <p>Dynamics prediction should live as an explicit model state that co-evolves with the video representation.</p>
+    </div>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="wrap narrow">
+    <div class="eyebrow">Citation</div>
+    <h2>BibTeX</h2>
+    <!-- UPDATE WHEN ARXIV ID EXISTS: this is a placeholder entry. Replace it with the arXiv entry
+         (e.g. journal={arXiv preprint arXiv:XXXX.XXXXX}, eprint={XXXX.XXXXX}, archivePrefix={arXiv}).
+         Also set ARXIV_URL at the top of the <script> block below. -->
+    <div class="bib">
+      <button type="button" class="copy" aria-label="Copy BibTeX to clipboard"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Copy</span></button>
+<pre><code id="bibcode">@article{kim2026physicalregistry,
+  title   = {World Models Need a Physical Registry: Learning Internal
+             Predictive States for Physically Plausible World Models},
+  author  = {Kim, Shinseong and Jeong, Jaeseok and Fu, Jianlong and Uh, Youngjung},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Physics-IQ benchmark scenes: Motamed et al., <i>Do generative video models understand physical principles?</i>, videos released under CC&nbsp;BY&nbsp;4.0. Backbone: NVIDIA Cosmos&nbsp;3 Nano 16B. All clips are model outputs re-encoded to H.264 for the web; the only overlay is the red ball-tracking dot on the motion-transfer clips.</p>
+    <p>Page template inspired by <a href="https://nerfies.github.io/" target="_blank" rel="noopener">Nerfies</a>.</p>
+  </div>
+</footer>
+
+<script>
+/* ---- Links: set the arXiv URL here once it exists; the "Soon" badge and tooltip are removed automatically. ---- */
+const ARXIV_URL = "";
+
+const PAIRS = [
+ { "kicker": "Solid mechanics", "title": "Balls collide",
+   "panels": [
+    { "cls": "base", "src": "assets/clips/fig3_example1_baseline.mp4", "tag": "Cosmos 3 Nano (backbone)", "cap": "After the collision, the balls attract each other and the yellow ball splits." },
+    { "cls": "ours", "src": "assets/clips/fig3_example1_ours.mp4", "tag": "+ Physical Registry", "cap": "After the collision, the balls separate." } ],
+   "prompt": { "label": "Physics-IQ task description", "text": "A light-colored wooden tabletop with two pipes at the edges. A blue and yellow tennis ball roll out of the pipes and towards each other. Static shot with no camera movement." } },
+ { "kicker": "Fluid dynamics", "title": "Liquid in an inverted jar",
+   "panels": [
+    { "cls": "base", "src": "assets/clips/fig3_example2_baseline.mp4", "tag": "Cosmos 3 Nano (backbone)", "cap": "The inverted jar disappears." },
+    { "cls": "ours", "src": "assets/clips/fig3_example2_ours.mp4", "tag": "+ Physical Registry", "cap": "Liquid climbs up the inverted jar." } ],
+   "prompt": { "label": "Physics-IQ task description", "text": "A bundle of lit matchsticks is placed in a bowl of red liquid. A glass jar gets lowered and covers the matchsticks. Static shot with no camera movement." } },
+ { "kicker": "Optics", "title": "A rolling ball and its reflection",
+   "panels": [
+    { "cls": "base", "src": "assets/clips/fig3_example3_baseline.mp4", "tag": "Cosmos 3 Nano (backbone)", "cap": "The ball in the mirror is not symmetrical to the real one." },
+    { "cls": "ours", "src": "assets/clips/fig3_example3_ours.mp4", "tag": "+ Physical Registry", "cap": "The ball in the mirror moves symmetrical to the real one." } ],
+   "prompt": { "label": "Physics-IQ task description", "text": "A 30lb kettlebell resting on a wooden table next to a mirror. A tennis ball rolls towards the kettlebell. Static shot with no camera movement." } },
+ { "kicker": "Thermodynamics", "title": "Paper under rising smoke",
+   "panels": [
+    { "cls": "base", "src": "assets/clips/fig3_example4_baseline.mp4", "tag": "Cosmos 3 Nano (backbone)", "cap": "The paper does not follow the rising smoke." },
+    { "cls": "ours", "src": "assets/clips/fig3_example4_ours.mp4", "tag": "+ Physical Registry", "cap": "The paper follows the rising smoke." } ],
+   "prompt": { "label": "Physics-IQ task description", "text": "A piece of folded paper is placed on a glass cutting board. The paper is being burnt and white smoke is emitting from it. Static shot with no camera movement." } },
+ { "kicker": "Magnetism", "title": "A wrench rotates toward a magnet",
+   "panels": [
+    { "cls": "base", "src": "assets/clips/fig3_example5_baseline.mp4", "tag": "Cosmos 3 Nano (backbone)", "cap": "The wrench flies to the magnet and jumps out." },
+    { "cls": "ours", "src": "assets/clips/fig3_example5_ours.mp4", "tag": "+ Physical Registry", "cap": "The wrench is attracted to the magnet and stays." } ],
+   "prompt": { "label": "Physics-IQ task description", "text": "A powerful magnet is placed on the table facing a black rotating platform that rotates clockwise. A small metal wrench is placed on the platform and is rotating towards the magnet. Static shot with no camera movement." } }
+];
+const WMB = [
+ ["Robotics", "The robotic arm slides a towel across the table.", 1],
+ ["Robotics", "The robotic arm places a pot on the yellow cloth.", 2],
+ ["Robotics", "The robotic arm opens the cardboard box.", 3],
+ ["Robotics", "The robotic arm picks up the purple tool from the toolbox.", 4],
+ ["Driving", "The autonomous vehicle accelerates around the curve.", 5],
+ ["Driving", "The autonomous vehicle stops on the roadside.", 6],
+ ["Industrial", "The excavator places a large rock into a pit.", 7],
+ ["Natural scene", "A powerful waterfall flows over a snow-covered cliff into a river.", 8]
+].map(([kicker, title, i]) => ({ kicker, title, aspect: "832/480",
+  panels: [{ cls: "ours", src: `assets/clips/wmb_example${i}_ours.mp4`, tag: "Cosmos 3 Nano + Physical Registry" }] }));
+const TRANSFER = [
+ { "speeds": [0.5, 0.75, 1], "rate": 0.5,
+   "kicker": "Motion source: bowling ball",
+   "title": "Bounce suppression from a heavy motion source",
+   "expect": "With the <span class=\"hl-a\">native forecast (A)</span>, the sphere bounces three times with diminishing height after landing. With the <span class=\"hl-b\">motion-source features in the registry (B)</span>, the sphere first lands at 0.417 s and <b>shows no visible rebound</b>.",
+   "panels": [
+    { "cls": "src", "src": "assets/clips/transfer_example1_source.mp4", "tag": "Motion source" },
+    { "cls": "base", "src": "assets/clips/transfer_example1_native.mp4", "tag": "A · native forecast", "cap": "The ball bounces three times." },
+    { "cls": "ours", "src": "assets/clips/transfer_example1_transfer.mp4", "tag": "B · motion-source features", "cap": "The ball does not bounce just like the motion source." } ],
+   "layout": "xfer" },
+ { "speeds": [0.5, 0.75, 1], "rate": 0.5,
+   "kicker": "Motion source: slowly descending balloon",
+   "title": "Descent transfer from a slowly descending motion source",
+   "expect": "With the <span class=\"hl-a\">native forecast (A)</span>, the sphere falls quickly and first touches the table at 0.375 s. With the <span class=\"hl-b\">motion-source features in the registry (B)</span>, the sphere <b>descends more slowly</b> through the same height band (478 ms vs. 371 ms, 1.29&times;) and first touches the table at 0.500 s.",
+   "panels": [
+    { "cls": "src", "src": "assets/clips/transfer_example2_source.mp4", "tag": "Motion source" },
+    { "cls": "base", "src": "assets/clips/transfer_example2_native.mp4", "tag": "A · native forecast", "cap": "The ball falls quickly and first touches the table at 0.375 s." },
+    { "cls": "ours", "src": "assets/clips/transfer_example2_transfer.mp4", "tag": "B · motion-source features", "cap": "The ball descends more slowly, like the motion source, and first touches the table at 0.500 s." } ],
+   "layout": "xfer" }
+];
+
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const poster = src => src.replace('assets/clips/', 'assets/posters/').replace(/\.mp4$/, '.jpg');
+
+/* ---------- header links ---------- */
+(function links() {
+  const a = document.getElementById('paper-link');
+  if (ARXIV_URL) {
+    a.href = ARXIV_URL; a.target = '_blank'; a.rel = 'noopener';
+    a.classList.remove('is-pending'); a.removeAttribute('data-tip'); a.setAttribute('aria-label', 'Paper on arXiv');
+    a.querySelector('.badge').remove();
+  }
+  // Pending links/buttons: do not navigate; flash the "Coming soon" tooltip instead (touch has no hover).
+  document.querySelectorAll('[data-tip]').forEach(el => {
+    const flash = e => { e.preventDefault(); el.classList.add('tip-on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('tip-on'), 1400); };
+    el.addEventListener('click', flash);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') flash(e); });
+  });
+})();
+
+/* ---------- gallery player (from the demo page) ---------- */
+/* Keep follower videos locked to a leader. */
+function follow(lead, rest) {
+  lead.addEventListener('timeupdate', () => rest.forEach(v => {
+    if (!v.paused && Math.abs(v.currentTime - lead.currentTime) > 0.06) v.currentTime = lead.currentTime;
+  }));
+}
+const tryPlay = v => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+
+/* Lazily attach sources when a container approaches the viewport. */
+const lazy = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.querySelectorAll('video[data-src]').forEach(v => { v.src = v.dataset.src; v.removeAttribute('data-src'); v.preload = 'metadata'; });
+  lazy.unobserve(e.target);
+}), { rootMargin: '600px 0px' });
+
+const reveal = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } }), { threshold: 0.08 });
+
+/* Motion-transfer arrows: source -> A (dashed grey, crossed out) and source -> B (solid). */
+function drawArrows(el) {
+  const box = el.querySelector('.xfer'), svg = box.querySelector('svg.arrows');
+  const [src, A, B] = ['src', 'base', 'ours'].map(c => box.querySelector('.panel.' + c + ' video'));
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  function draw() {
+    const R = box.getBoundingClientRect(); if (!R.width) return;
+    const r = v => { const q = v.getBoundingClientRect(); return { l: q.left - R.left, t: q.top - R.top, w: q.width, h: q.height }; };
+    const srcFig = src.closest('figure');
+    let a = r(A), b = r(B), side = a.l > r(src).l + r(src).w - 1;   // desktop: targets to the right; mobile: targets below
+    // desktop: centre the motion source exactly between A and B so both arrows have the same length
+    srcFig.style.transform = '';
+    if (side) { const s0 = r(src); srcFig.style.transform = `translateY(${((a.t + a.h / 2 + b.t + b.h / 2) / 2) - (s0.t + s0.h / 2)}px)`; }
+    const s = r(src);
+    const pad = 8;
+    const from = t => side ? [s.l + s.w + pad, s.t + s.h / 2] : [s.l + s.w / 2, s.t + s.h + pad];
+    const to = t => side ? [t.l - pad, t.t + t.h / 2] : [t.l + t.w / 2, t.t - pad];
+    svg.setAttribute('viewBox', `0 0 ${R.width} ${R.height}`);
+    svg.replaceChildren();
+    const [ax0, ay0] = from(a), [ax1, ay1] = to(a), [bx0, by0] = from(b), [bx1, by1] = to(b);
+    svg.appendChild(mk('path', { class: 'arr-no', d: `M${ax0},${ay0} L${ax1},${ay1}` }));
+    const mx = (ax0 + ax1) / 2, my = (ay0 + ay1) / 2, g = mk('g', { class: 'xmark' });
+    g.appendChild(mk('circle', { cx: mx, cy: my, r: 13 }));
+    g.appendChild(mk('path', { d: `M${mx - 6},${my - 6} L${mx + 6},${my + 6} M${mx + 6},${my - 6} L${mx - 6},${my + 6}` }));
+    svg.appendChild(g);
+    const ang = Math.atan2(by1 - by0, bx1 - bx0), hl = 14, hw = 8;
+    const ex = bx1 - hl * Math.cos(ang), ey = by1 - hl * Math.sin(ang);
+    svg.appendChild(mk('path', { class: 'arr-yes', d: `M${bx0},${by0} L${ex},${ey}` }));
+    svg.appendChild(mk('path', { class: 'head-yes', d: `M${bx1},${by1} L${ex - hw * Math.sin(ang)},${ey + hw * Math.cos(ang)} L${ex + hw * Math.sin(ang)},${ey - hw * Math.cos(ang)} Z` }));
+  }
+  new ResizeObserver(draw).observe(box);
+  [src, A, B].forEach(v => v.addEventListener('loadedmetadata', draw));
+  requestAnimationFrame(draw);
+}
+
+function card(p) {
+  const speeds = p.speeds || [0.5, 1], rate0 = p.rate || 1;
+  const el = document.createElement('article');
+  el.className = 'card reveal' + (p.layout === 'xfer' ? ' xfer-card' : '');
+  el.setAttribute('aria-label', p.title);
+  const panels = p.panels.map(q => `
+      <figure class="panel ${q.cls}">
+        <video data-src="${esc(q.src)}" poster="${esc(poster(q.src))}" muted playsinline loop preload="none" aria-label="${esc(q.tag)}"></video>
+        <span class="tag">${esc(q.tag)}</span>
+        ${q.cap ? `<figcaption>${q.cap}</figcaption>` : ''}
+      </figure>`).join('');
+  el.innerHTML = `
+    <div class="card-head">
+      <div><div class="kicker">${esc(p.kicker)}</div><h3>${esc(p.title)}</h3></div>
+      ${p.expect ? `<div class="expect">${p.expect}</div>` : ''}
+    </div>
+    ${p.prompt ? `<div class="scn"><div class="lab">${esc(p.prompt.label)}</div><p>${esc(p.prompt.text)}</p></div>` : ''}
+    ${p.layout === 'xfer'
+      ? `<div class="xfer">${panels}<svg class="arrows" aria-hidden="true"></svg></div>
+         <div class="arrow-key"><span><b>Motion source &rarr; A:</b> not used (&#10007;)</span><span><b>Motion source &rarr; B:</b> its JEPA features replace the forecast</span></div>`
+      : `<div class="pair" style="--n:${p.panels.length}">${panels}</div>`}
+    <div class="controls">
+      <button type="button" class="play" aria-label="Play or pause ${esc(p.title)}">&#9654; Play</button>
+      <input type="range" min="0" max="1000" value="0" aria-label="Scrub all videos in ${esc(p.title)}">
+      <span class="speeds" role="group" aria-label="Playback speed">${speeds.map(r => `<button type="button" class="spd" data-rate="${r}" aria-pressed="${r === rate0}">${r}&times;</button>`).join('')}</span>
+      <span class="time">0.0 / 5.0 s</span>
+    </div>`;
+  const vids = [...el.querySelectorAll('video')], a = vids[0];
+  if (p.aspect) vids.forEach(v => v.style.aspectRatio = p.aspect);
+  const play = el.querySelector('.play'), range = el.querySelector('input'), time = el.querySelector('.time');
+  let scrubbing = false, userPaused = false;
+  const setPlaying = on => { play.innerHTML = on ? '&#10074;&#10074; Pause' : '&#9654; Play'; };
+  // Attach lazy sources first: the in-view observer can fire before the lazy loader, and calling play()
+  // on a video without src (then assigning src) leaves it paused while the button already says Pause.
+  const ensureSrc = () => vids.forEach(v => { if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.preload = 'metadata'; } });
+  const start = () => { ensureSrc(); vids.forEach(v => { v.currentTime = a.currentTime; tryPlay(v); }); };
+  const stop = () => { vids.forEach(v => v.pause()); };
+  a.addEventListener('play', () => setPlaying(true));    // button reflects the real state of the leader
+  a.addEventListener('pause', () => setPlaying(false));
+  play.onclick = () => { if (a.paused) { userPaused = false; start(); } else { userPaused = true; stop(); } };
+  const setRate = r => { vids.forEach(v => { v.defaultPlaybackRate = r; v.playbackRate = r; });
+    el.querySelectorAll('.spd').forEach(bt => bt.setAttribute('aria-pressed', Number(bt.dataset.rate) === r)); };
+  el.querySelectorAll('.spd').forEach(bt => bt.onclick = () => setRate(Number(bt.dataset.rate)));
+  vids.forEach(v => v.addEventListener('loadedmetadata', () => { v.playbackRate = v.defaultPlaybackRate; }));
+  setRate(rate0);
+  range.oninput = () => { scrubbing = true; const t = (range.value / 1000) * (a.duration || 5); vids.forEach(v => v.currentTime = t); };
+  range.onchange = () => { scrubbing = false; };
+  a.addEventListener('timeupdate', () => {
+    const d = a.duration || 5;
+    if (!scrubbing) range.value = Math.round(1000 * a.currentTime / d);
+    time.textContent = `${a.currentTime.toFixed(1)} / ${d.toFixed(1)} s`;
+  });
+  follow(a, vids.slice(1));
+  // loop restarts all videos together
+  a.addEventListener('seeked', () => { if (a.currentTime < 0.05) vids.slice(1).forEach(v => v.currentTime = 0); });
+  // Play when the card is in view (muted clips; also when the OS asks for reduced motion, since the
+  // clips are the content and every card has a pause button). Low threshold so tall cards still trigger.
+  new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting && a.paused && !userPaused) { vids.forEach(v => v.currentTime = 0); start(); }
+    if (!e.isIntersecting && !a.paused) stop();
+  }), { threshold: 0.25 }).observe(el);
+  // Clicking any video toggles the whole synced group, like the Play/Pause button.
+  vids.forEach(v => { v.style.cursor = 'pointer'; v.addEventListener('click', () => play.click()); });
+  if (p.layout === 'xfer') drawArrows(el);
+  lazy.observe(el); reveal.observe(el);
+  return el;
+}
+
+const grid = document.getElementById('grid');
+PAIRS.forEach(p => grid.appendChild(card(p)));
+const gw = document.getElementById('gridwmb');
+WMB.forEach(p => gw.appendChild(card(p)));
+const grid2 = document.getElementById('grid2');
+TRANSFER.forEach(p => grid2.appendChild(card(p)));
+
+/* ---------- hero teaser: synced backbone/ours pair that steps through the five Physics-IQ categories ---------- */
+(function teaser() {
+  const root = document.getElementById('teaser');
+  const [vb, vo] = root.querySelectorAll('video'), caps = root.querySelectorAll('figcaption');
+  const chips = root.querySelector('.chips'), btn = root.querySelector('.tplay');
+  const scene = root.querySelector('.teaser-scene'), bar = root.querySelector('.progress i');
+  let idx = 0, auto = !reduceMotion, paused = false, visible = true;
+  PAIRS.forEach((p, i) => {
+    const c = document.createElement('button');
+    c.type = 'button'; c.className = 'chip'; c.setAttribute('role', 'tab'); c.textContent = p.kicker;
+    c.onclick = () => { auto = false; load(i, true); };
+    chips.appendChild(c);
+  });
+  const setBtn = () => { btn.innerHTML = paused ? '&#9654; Play' : '&#10074;&#10074; Pause'; btn.setAttribute('aria-label', paused ? 'Play teaser' : 'Pause teaser'); };
+  function load(i, focus) {
+    idx = i; const p = PAIRS[i];
+    [vb, vo].forEach((v, k) => { v.poster = poster(p.panels[k].src); v.src = p.panels[k].src; v.loop = !auto; });
+    caps[0].textContent = p.panels[0].cap; caps[1].textContent = p.panels[1].cap;
+    scene.innerHTML = `<b>${esc(p.kicker)}</b> · ${esc(p.title)}`;
+    chips.querySelectorAll('.chip').forEach((c, k) => { c.setAttribute('aria-selected', k === i); c.tabIndex = k === i ? 0 : -1; });
+    if (focus) chips.children[i].focus({ preventScroll: true });
+    if (!paused && visible) [vb, vo].forEach(tryPlay);
+  }
+  chips.addEventListener('keydown', e => {
+    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (d) { e.preventDefault(); auto = false; load((idx + d + PAIRS.length) % PAIRS.length, true); }
+  });
+  follow(vb, [vo]);
+  vb.addEventListener('ended', () => { if (auto) load((idx + 1) % PAIRS.length); });
+  vb.addEventListener('timeupdate', () => { bar.style.width = (100 * vb.currentTime / (vb.duration || 5)).toFixed(2) + '%'; });
+  btn.onclick = () => { paused = !paused; setBtn(); paused ? [vb, vo].forEach(v => v.pause()) : [vb, vo].forEach(tryPlay); };
+  [vb, vo].forEach(v => { v.style.cursor = 'pointer'; v.addEventListener('click', () => btn.click()); });
+  new IntersectionObserver(es => es.forEach(e => {
+    visible = e.isIntersecting;
+    if (!visible) [vb, vo].forEach(v => v.pause()); else if (!paused) [vb, vo].forEach(tryPlay);
+  }), { threshold: 0.2 }).observe(root);
+  setBtn(); load(0);
+})();
+
+/* ---------- section reveals, nav state ---------- */
+document.querySelectorAll('.reveal:not(.card)').forEach(el => reveal.observe(el));
+const nav = document.querySelector('nav.top');
+const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+addEventListener('scroll', onScroll, { passive: true }); onScroll();
+const navLinks = [...nav.querySelectorAll('ul a')];
+const sectionIO = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+}), { rootMargin: '-45% 0px -50% 0px' });
+navLinks.forEach(l => sectionIO.observe(document.querySelector(l.getAttribute('href'))));
+
+/* ---------- BibTeX copy ---------- */
+(function copy() {
+  const b = document.querySelector('.bib .copy'), label = b.querySelector('span');
+  b.onclick = async () => {
+    const text = document.getElementById('bibcode').textContent;
+    try { await navigator.clipboard.writeText(text); }
+    catch (_) { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    b.classList.add('ok'); label.textContent = 'Copied'; setTimeout(() => { b.classList.remove('ok'); label.textContent = 'Copy'; }, 1600);
+  };
+})();
+</script>
+</body>
+</html>
