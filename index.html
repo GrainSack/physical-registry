@@ -158,6 +158,7 @@
   .authors { margin: 26px 0 6px; display: flex; flex-wrap: wrap; gap: 6px 26px; font-size: clamp(17px, 1.7vw, 20px); font-weight: 600; position: relative; }
   .authors sup, .affils sup { color: var(--green); font-weight: 600; margin-left: 1px; }
   .corr { color: var(--blue); }
+  .first, .authors sup.first { color: #facc15; }
   .affils { display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font-size: 15.5px; position: relative; }
   .corr-note { color: var(--dim); font-size: 13px; margin: 6px 0 0; position: relative; }
   .links { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; position: relative; }
@@ -165,6 +166,16 @@
          color: var(--ink); background: #18223c; border: 1px solid var(--line2); transition: background .15s, border-color .15s, transform .15s; }
   .btn:hover { background: #22305a; border-color: #4a5f92; text-decoration: none; transform: translateY(-1px); }
   .btn svg { width: 18px; height: 18px; flex: none; }
+  .btn.arxiv { background: linear-gradient(135deg, #c8262a, #8f1418); border-color: #e0474b; color: #fff; box-shadow: 0 6px 20px -8px rgba(200,38,42,.75); }
+  .btn.arxiv:hover { background: linear-gradient(135deg, #dc3337, #a3181d); border-color: #ff6b6f; }
+  .btn.code { background: linear-gradient(135deg, #f6f8fa, #d8dee4); border-color: #ffffff; color: #1f2328; box-shadow: 0 6px 20px -8px rgba(240,246,252,.55); }
+  .btn.code:hover { background: linear-gradient(135deg, #ffffff, #e6ebf0); border-color: #ffffff; }
+  .btn.hf { background: linear-gradient(135deg, #ffd21e, #ff9d00); border-color: #ffe36e; color: #1a1300; box-shadow: 0 6px 20px -8px rgba(255,190,0,.75); }
+  .btn.hf:hover { background: linear-gradient(135deg, #ffdc4d, #ffab1f); border-color: #fff0a8; }
+  .btn.bib { background: linear-gradient(135deg, rgba(122,167,255,.22), rgba(52,211,153,.18)); border-color: rgba(122,167,255,.6); color: #dbe6ff; }
+  .btn.bib:hover { background: linear-gradient(135deg, rgba(122,167,255,.32), rgba(52,211,153,.26)); border-color: var(--blue); }
+  .btn .emoji { font-size: 19px; line-height: 1; }
+  .btn.code .badge, .btn.hf .badge { color: #fff; background: #1f2328; }
   .btn .badge { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #1a1400; background: #facc15; padding: 2px 8px; border-radius: 999px; }
   .goal { margin-top: 30px; position: relative; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; padding: 14px 18px;
           border: 1px solid rgba(52,211,153,.45); background: rgba(52,211,153,.07); border-radius: 14px; max-width: 980px; }
@@ -256,7 +267,7 @@
     <h1>World Models Need a <span class="accent">Physical Registry</span></h1>
     <p class="subtitle">Learning Internal Predictive States for Physically Plausible World Models</p>
     <p class="authors">
-      <span>Shinseong Kim<sup>1,2</sup></span>
+      <span>Shinseong Kim<sup>1,2</sup><sup class="first" aria-label="first author">&#9733;</sup></span>
       <span>Jaeseok Jeong<sup>1</sup></span>
       <span>Jianlong Fu<sup>2</sup></span>
       <span>Youngjung Uh<sup>1</sup><sup class="corr" aria-label="corresponding author">&#9993;</sup></span>
@@ -265,21 +276,21 @@
       <span><sup>1</sup>Yonsei University</span>
       <span><sup>2</sup>Microsoft Research Asia</span>
     </div>
-    <p class="corr-note"><span class="corr" aria-hidden="true">&#9993;</span> Corresponding author</p>
+    <p class="corr-note"><span class="first" aria-hidden="true">&#9733;</span> First author &nbsp;&middot;&nbsp; <span class="corr" aria-hidden="true">&#9993;</span> Corresponding author</p>
     <div class="links">
-      <a class="btn" id="link-arxiv" href="https://arxiv.org/" target="_blank" rel="noopener" aria-label="Paper on arXiv (coming soon)">
+      <a class="btn arxiv" id="link-arxiv" href="https://arxiv.org/" target="_blank" rel="noopener" aria-label="Paper on arXiv (coming soon)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M6 2.8h8.2L19 7.6v13.6H6z"/><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M14 2.8v5h5"/><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M8.8 12h7.4M8.8 15.2h7.4M8.8 18.2h4.6"/></svg>
         <span>arXiv</span><span class="badge">soon</span>
       </a>
-      <a class="btn" id="link-code" href="https://github.com/GrainSack/physical-registry" target="_blank" rel="noopener" aria-label="Code on GitHub (release soon)">
+      <a class="btn code" id="link-code" href="https://github.com/GrainSack/physical-registry" target="_blank" rel="noopener" aria-label="Code on GitHub (release soon)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
         <span>Code</span><span class="badge">soon</span>
       </a>
-      <a class="btn" id="link-hf" href="https://huggingface.co/GrainSack" target="_blank" rel="noopener" aria-label="Model weights on Hugging Face (coming soon)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10.5" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="8.8" r="1.25" fill="currentColor"/><circle cx="15" cy="8.8" r="1.25" fill="currentColor"/><path d="M8.4 12.3c.9 1.9 2.1 2.8 3.6 2.8s2.7-.9 3.6-2.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <a class="btn hf" id="link-hf" href="https://huggingface.co/GrainSack" target="_blank" rel="noopener" aria-label="Model weights on Hugging Face (coming soon)">
+        <span class="emoji" aria-hidden="true">&#129303;</span>
         <span>Hugging Face</span><span class="badge">soon</span>
       </a>
-      <a class="btn" href="#bibtex">
+      <a class="btn bib" href="#bibtex">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M5 4.5h10.5L19 8v11.5H5zM8.5 11h7M8.5 14.5h7M8.5 7.5h4"/></svg>
         <span>BibTeX</span>
       </a>
