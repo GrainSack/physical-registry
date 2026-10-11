@@ -2,8 +2,8 @@
 
 **Learning Internal Predictive States for Physically Plausible World Models**
 
-Shinseong Kim<sup>1,2</sup>, Jaeseok Jeong<sup>1</sup>, Jianlong Fu<sup>2</sup>, Youngjung Uh<sup>1</sup>&#9993;  
-<sup>1</sup>Yonsei University · <sup>2</sup>Microsoft Research Asia · &#9993; Corresponding author
+Shinseong Kim<sup>1,2</sup>&#9733;, Jaeseok Jeong<sup>1</sup>, Jianlong Fu<sup>2</sup>, Youngjung Uh<sup>1</sup>&#9993;  
+<sup>1</sup>Yonsei University · <sup>2</sup>Microsoft Research Asia · &#9733; First author · &#9993; Corresponding author
 
 <!-- TEMPORARY LINKS: replace the arXiv URL with https://arxiv.org/abs/<ID> and the Hugging Face URL with the model repo once released. -->
 [![arXiv](https://img.shields.io/badge/arXiv-coming%20soon-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/)
