@@ -127,11 +127,12 @@
   .xmark path { stroke: #f87171; stroke-width: 3; stroke-linecap: round; }
   .arrow-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); padding: 12px 4px 0; }
   .arrow-key b { color: var(--ink); font-weight: 600; }
+  /* phones: one clip per row so A and B stay large enough; the arrow key below explains the links */
   @media (max-width: 760px) {
-    .xfer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 64px auto; gap: 0 12px; }
-    .xfer .panel.src { grid-column: 1 / span 2; grid-row: 1; width: 78%; justify-self: center; }
-    .xfer .panel.base { grid-column: 1; grid-row: 3; }
-    .xfer .panel.ours { grid-column: 2; grid-row: 3; }
+    .xfer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 16px 0; }
+    .xfer .panel.src, .xfer .panel.base, .xfer .panel.ours { grid-column: 1; grid-row: auto; width: 100%; }
+    .xfer svg.arrows { display: none; }
+    .xfer .panel .tag { top: 8px; left: 8px; font-size: 12px; padding: 3px 9px; white-space: nowrap; }
   }
 
   .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 0 4px; }
@@ -360,7 +361,7 @@
     <div class="sec-kicker">Method</div>
     <h2>Forecast-initialized slots co-evolve with video tokens</h2>
     <p class="sub">Physical Registry represents the forecast in a fixed set of dedicated registry slots that carry predictive features alongside the video latent rather than within it.</p>
-    <figure class="fig"><img src="assets/img/method.jpg" width="2397" height="1279" loading="lazy" decoding="async"
+    <figure class="fig"><img src="assets/img/method.jpg" width="2713" height="1396" loading="lazy" decoding="async"
       alt="Method overview. (a) Training: a JEPA encoder and predictor produce a forecast that initializes Physical Registry tokens; the registry tokens are concatenated with video tokens and pass through shared DiT blocks; a registry reader is supervised with an alignment loss while the video stream keeps the flow-matching loss. (b) Inference: the registry is forecast-initialized from the observation and the registry reader produces readouts for the PRS score."></figure>
     <div class="steps">
       <div class="box"><h3><span class="num">1</span>Dedicated &amp; co-evolving</h3><p>Temporally grounded registry slots inside the video DiT co-evolve with video tokens through the shared DiT blocks.</p></div>
@@ -399,7 +400,7 @@
     <div class="sec-kicker">Inference</div>
     <h2>Physical Registry Selector (PRS)</h2>
     <p class="sub">Select a future from registry states before full denoising. Candidates share the same forecast initialization, are ranked from registry readouts over a <i>K</i>-step prefix, and only the selected trajectory continues for the remaining <i>D</i>&minus;<i>K</i> steps.</p>
-    <figure class="fig"><img src="assets/img/prs.jpg" width="1876" height="512" loading="lazy" decoding="async"
+    <figure class="fig"><img src="assets/img/prs.jpg" width="2499" height="915" loading="lazy" decoding="async"
       alt="PRS in three stages: 1. generate candidate prefixes from multiple noise samples for K denoising steps; 2. read out the registry with q_psi and compare it with the shared forecast by cosine similarity; 3. pick the arg max candidate and finish it for D minus K steps while the others stop."></figure>
     <p class="claim" style="margin-top:28px"><em>2.84&ndash;4.06&times;</em> end-to-end speedup over post-hoc best-of-N selection</p>
     <p class="sub">At default PRS settings: <b class="up">+5.6&ndash;15.9%</b> I2V over each backbone's own Plain baseline (4 backbones).</p>
