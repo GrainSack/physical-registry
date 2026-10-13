@@ -118,7 +118,9 @@
   .xfer .panel.src { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
   .xfer .panel.base { grid-column: 3; grid-row: 1; }
   .xfer .panel.ours { grid-column: 3; grid-row: 2; }
-  .xfer .panel .tag { top: 12px; bottom: auto; }
+  /* labels sit above each clip, never on top of the video */
+  .xfer .panel { display: flex; flex-direction: column; }
+  .xfer .panel .tag { position: static; order: -1; align-self: flex-start; margin: 0 0 8px; backdrop-filter: none; -webkit-backdrop-filter: none; white-space: nowrap; }
   .xfer svg.arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
   .arr-no { stroke: #7b869d; stroke-width: 3; stroke-dasharray: 8 7; fill: none; }
   .arr-yes { stroke: var(--green); stroke-width: 4; fill: none; }
@@ -132,7 +134,7 @@
     .xfer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; gap: 16px 0; }
     .xfer .panel.src, .xfer .panel.base, .xfer .panel.ours { grid-column: 1; grid-row: auto; width: 100%; }
     .xfer svg.arrows { display: none; }
-    .xfer .panel .tag { top: 8px; left: 8px; font-size: 12px; padding: 3px 9px; white-space: nowrap; }
+    .xfer .panel .tag { font-size: 12px; padding: 3px 9px; }
   }
 
   .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 0 4px; }
